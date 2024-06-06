@@ -99,7 +99,7 @@ impl<'window> State<'window> {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &view,
+                view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color {
@@ -122,7 +122,7 @@ impl<'window> State<'window> {
     } 
 
     pub fn window(&self) -> &winit::window::Window {
-        &self.window
+        self.window
     }
 
     pub fn input(&mut self, _event: &mut winit::event::WindowEvent) -> bool {
@@ -141,13 +141,13 @@ impl<'window> State<'window> {
     pub fn update(&mut self) {}
 
     fn create_render_pipeline(device: &wgpu::Device, shader_module: &wgpu::ShaderModule, surface_config: &wgpu::SurfaceConfiguration) -> wgpu::RenderPipeline {
-        let vertex = Self::create_vertex_state(&shader_module);
-        let color_targets = Self::create_color_targets(&surface_config);
-        let fragment = Self::create_fragment_state(&shader_module, &color_targets);
+        let vertex = Self::create_vertex_state(shader_module);
+        let color_targets = Self::create_color_targets(surface_config);
+        let fragment = Self::create_fragment_state(shader_module, &color_targets);
         let primitive = Self::create_primitive_state();
         let multisample = Self::create_multisample_state();
 
-        let render_pipeline_layout = Self::create_pipeline_layout(&device);
+        let render_pipeline_layout = Self::create_pipeline_layout(device);
         device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Render Pipeline"),
             layout: Some(&render_pipeline_layout),
@@ -169,7 +169,7 @@ impl<'window> State<'window> {
     }
 
     fn create_surface_config(surface: &wgpu::Surface, adapter: &wgpu::Adapter, size: &winit::dpi::PhysicalSize<u32>) -> wgpu::SurfaceConfiguration {
-        let surface_capabilities = surface.get_capabilities(&adapter);
+        let surface_capabilities = surface.get_capabilities(adapter);
         let surface_format = surface_capabilities
             .formats
             .iter()
