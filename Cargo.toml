@@ -1,0 +1,12 @@
+[package]
+name = "bezier"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wgpu = "0.19.4"
+winit = { version = "0.29.15", features = ["rwh_05"] }
+env_logger = "*"
+pollster = "*"
+log = "0.4.21"
+bytemuck = { version = "1.12", features = [ "derive" ] }
