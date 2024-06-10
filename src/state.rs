@@ -155,7 +155,7 @@ impl<'window> State<'window> {
                     },
                 ..
             } => {
-                self.current_pipeline = self.current_pipeline ^ 1;
+                self.current_pipeline ^= 1;
                 false
             }
             _ => false,

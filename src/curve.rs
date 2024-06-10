@@ -94,7 +94,6 @@ impl PolyLine {
         .into_iter()
         .map(Vector2::into)
         .map(Vertex::new_f64)
-        .into_iter()
         .collect();
         let indices = if vertices.is_empty() {
             vec![]
