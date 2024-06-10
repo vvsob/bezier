@@ -1,8 +1,11 @@
-pub mod vertex;
+pub mod curve;
 mod state;
+pub mod vertex;
 
-pub use vertex::Vertex;
+use std::time::SystemTime;
+
 use state::State;
+pub use vertex::Vertex;
 
 use winit::{
     event::{Event, KeyEvent, WindowEvent},
@@ -21,6 +24,8 @@ pub async fn run() {
     let window_ref = &window;
 
     let mut state = State::new(&window).await;
+
+    let start_time = SystemTime::now();
 
     let _ = event_loop.run(move |mut event, control_flow| match event {
         Event::WindowEvent {
@@ -42,7 +47,7 @@ pub async fn run() {
                         state.resize(*physical_size);
                     }
                     WindowEvent::RedrawRequested => {
-                        state.update();
+                        state.update(start_time.elapsed().unwrap());
                         match state.render() {
                             Ok(_) => {}
                             Err(wgpu::SurfaceError::Lost) => {} /*state.resize(state.size)*/,

@@ -10,3 +10,5 @@ env_logger = "*"
 pollster = "*"
 log = "0.4.21"
 bytemuck = { version = "1.12", features = [ "derive" ] }
+cgmath = "0.18"
+geo = "0.28.0"
