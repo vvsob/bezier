@@ -194,7 +194,8 @@ impl<'window> State<'window> {
         )
         .subdivide(count);
 
-        let data = poly_line.get_render_data(width);
+        let renderer = crate::curve::renderer::ConnectionRenderer::new();
+        let data = renderer.render(&poly_line, width);
 
         self.queue
             .write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(&data.vertices));
