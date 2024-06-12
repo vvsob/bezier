@@ -194,7 +194,7 @@ impl<'window> State<'window> {
         )
         .subdivide(count);
 
-        let renderer = crate::curve::renderer::ConnectionRenderer::new();
+        let renderer = crate::curve::renderer::TangentRenderer::new();
         let data = renderer.render(&poly_line, width);
 
         self.queue

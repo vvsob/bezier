@@ -6,14 +6,11 @@ use super::Vector2;
 
 use crate::{vertex::RenderData, Vertex};
 
-
-pub struct ConnectionRenderer {
-
-}
+pub struct ConnectionRenderer {}
 
 impl ConnectionRenderer {
-    pub fn new() -> ConnectionRenderer {
-        ConnectionRenderer {}
+    pub fn new() -> Self {
+        Self {}
     }
 
     pub fn render(&self, line: &PolyLine, width: f64) -> RenderData {
@@ -156,6 +153,96 @@ impl ConnectionRenderer {
     }
 }
 
+pub struct TangentRenderer {}
+
+impl TangentRenderer {
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn render(&self, line: &PolyLine, width: f64) -> RenderData {
+        let mut result = RenderData::new();
+
+        for i in 1..line.points.len() {
+            result = result.merge(Self::get_segment_render_data(line, i, width));
+        }
+
+        result
+    }
+
+    fn get_segment_render_data(line: &PolyLine, i: usize, width: f64) -> RenderData {
+        let start_points = Self::get_points(line, i - 1, width).unwrap();
+        let end_points = Self::get_points(line, i, width).unwrap();
+        let vertices: Vec<Vertex> = [start_points.0, start_points.1, end_points.0, end_points.1]
+            .map(Vector2::into)
+            .map(Vertex::new_f64)
+            .into_iter()
+            .collect();
+        let indices: Vec<_> = vec![0, 2, 3, 0, 3, 1];
+        RenderData { vertices, indices }
+    }
+
+    fn get_points(line: &PolyLine, i: usize, width: f64) -> Option<(Vector2, Vector2)> {
+        if i == 0 {
+            return Some(Self::get_start_points(line, i, width));
+        }
+        if i + 1 == line.points.len() {
+            return Some(Self::get_end_points(line, i, width));
+        }
+        let start_points = Self::get_start_points(line, i - 1, width);
+        let end_points = Self::get_end_points(line, i, width);
+        let next_start_points = Self::get_start_points(line, i, width);
+        let next_end_points = Self::get_end_points(line, i + 1, width);
+
+        let intersections = (
+            line_intersection(
+                start_points.0,
+                end_points.0,
+                next_start_points.0,
+                next_end_points.0,
+            ),
+            line_intersection(
+                start_points.1,
+                end_points.1,
+                next_start_points.1,
+                next_end_points.1,
+            ),
+        );
+
+        match intersections {
+            (Some(intersection1), Some(intersection2)) => Some((intersection1, intersection2)),
+            _ => None,
+        }
+    }
+
+    fn get_start_points(line: &PolyLine, i: usize, width: f64) -> (Vector2, Vector2) {
+        if i + 1 == line.points.len() {
+            panic!();
+        }
+        Self::offset_by_direction(
+            line.points[i],
+            (line.points[i + 1] - line.points[i]).normalize() * width,
+        )
+    }
+
+    fn get_end_points(line: &PolyLine, i: usize, width: f64) -> (Vector2, Vector2) {
+        if i == 0 {
+            panic!();
+        }
+        Self::offset_by_direction(
+            line.points[i],
+            (line.points[i] - line.points[i - 1]).normalize() * width,
+        )
+    }
+
+    fn offset_by_direction(point: Vector2, direction: Vector2) -> (Vector2, Vector2) {
+        (
+            point + vec2(direction.y, -direction.x),
+            point + vec2(-direction.y, direction.x),
+        )
+    }
+}
+
 fn make_line(start: Vector2, end: Vector2) -> geo::Line<f64> {
     geo::Line {
         start: geo::Coord {
@@ -163,5 +250,18 @@ fn make_line(start: Vector2, end: Vector2) -> geo::Line<f64> {
             y: start.y,
         },
         end: geo::Coord { x: end.x, y: end.y },
+    }
+}
+
+fn line_intersection(p1: Vector2, p2: Vector2, p3: Vector2, p4: Vector2) -> Option<Vector2> {
+    let x_numerator =
+        (p1.x * p2.y - p1.y * p2.x) * (p3.x - p4.x) - (p1.x - p2.x) * (p3.x * p4.y - p3.y * p4.x);
+    let y_numerator =
+        (p1.x * p2.y - p1.y * p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x * p4.y - p3.y * p4.x);
+    let denominator = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+    if (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x) == 0.0 {
+        None
+    } else {
+        Some(vec2(x_numerator / denominator, y_numerator / denominator))
     }
 }
